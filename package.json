@@ -1,0 +1,19 @@
+{
+  "name": "rates-process-api",
+  "version": "1.0.0",
+  "description": "API to serve the front end ",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm run local"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicok93/rates-process-api.git"
+  },
+  "author": "Nicolás Kosacoff",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nicok93/rates-process-api/issues"
+  },
+  "homepage": "https://github.com/nicok93/rates-process-api#readme"
+}
