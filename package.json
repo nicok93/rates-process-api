@@ -25,9 +25,9 @@
     "axios": "^1.4.0",
     "bin-packing-3d": "^1.0.0",
     "dotenv": "^16.3.1",
-    "easypost-system-api": "git+https://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:x-oauth-basic@github.com/nicok93/easypost-system-api.git#main",
+    "easypost-system-api": "git+ssh://git@github.com/nicok93/easypost-system-api.git#main",
     "express": "^4.18.2",
-    "shipstation-system-api": "git+https://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:x-oauth-basic@github.com/nicok93/shipstation-system-api.git#main",
-    "sql-system-api": "git+https://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:x-oauth-basic@github.com/nicok93/sql-system-api.git#main"
+    "shipstation-system-api": "git+ssh://git@github.com/nicok93/shipstation-system-api.git#main",
+    "sql-system-api": "git+ssh://git@github.com/nicok93/sql-system-api.git#main"
   }
 }
