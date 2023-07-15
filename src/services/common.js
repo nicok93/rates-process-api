@@ -1,31 +1,35 @@
-import { Bin, Item, Packer } from 'bin-packing-3d';
+// import { Bin, Item, Packer } from 'bin-packing-3d';
+import BinPacking3D from 'binpackingjs';
+const { Item, Bin, Packer } = BinPacking3D.BP3D;
+
 import sqlSystemAPI from 'sql-system-api';
 
 async function packer() {
     const boxes = await sqlSystemAPI.packagesService.list();
     const products = await sqlSystemAPI.productsService.list();
-    let packer = new Packer();
     boxes.forEach(box => {
+        let packer = new Packer();
         const interiorSizes = box.interior;
-        const bin = new Bin(box.name, interiorSizes.width, interiorSizes.height['1'], interiorSizes.length, box.maximumWeight)
-        packer.add_bin(bin);
-    });
-    products.slice(145).forEach(product => {
-        const item = new Item(product.id, product.width, product.height, product.length, product.shopify.weight)
-        packer.add_item(item);
-    });
-    packer.pack();
-
-    for (let i = 0; i < packer.bins.length; i++) {
-        if (packer.bins[i].unfitted_items.length == 0) {
-            console.log(":::::::::::", packer.bins[i].name);
+        for (let i = 1; i <= 4; i++) {
+            if (interiorSizes.height[i] != 0) {
+                const bin = new Bin(box.name + ". Height " + interiorSizes.height[i], interiorSizes.width, interiorSizes.height[i], interiorSizes.length, box.maximumWeight)
+                packer.addBin(bin);
+            }
         }
-    }
+        products.slice(145).forEach(product => {
+            const item = new Item(product.id, product.width, product.height, product.length, product.shopify.weight)
+            packer.addItem(item);
+        });
+        packer.pack();
+        for (let i = 0; i < packer.bins.length; i++) {
+            if (packer.bins[i].items.length > 0) {
+                console.log(":::::::::::", packer.bins[i].name);
+            }
+        }
+    });
 }
 
-
 export default { packer }
-
 
     // packer.add_bin(new Bin('small-envelope', 11.5, 6.125, 0.25, 10));
     // packer.add_bin(new Bin('large-envelope', 15.0, 12.0, 0.75, 15));
