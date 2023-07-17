@@ -23,8 +23,11 @@
   "homepage": "https://github.com/nicok93/rates-process-api#readme",
   "dependencies": {
     "axios": "^1.4.0",
+    "binpackingjs": "^3.0.2",
     "dotenv": "^16.3.1",
+    "easypost-system-api": "git+ssh://git@github.com/nicok93/easypost-system-api.git#main",
     "express": "^4.18.2",
-    "shipstation-system-api": "git+https://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:x-oauth-basic@github.com/nicok93/shipstation-system-api.git#main"
+    "shipstation-system-api": "git+ssh://git@github.com/nicok93/shipstation-system-api.git#main",
+    "sql-system-api": "git+ssh://git@github.com/nicok93/sql-system-api.git#main"
   }
 }
