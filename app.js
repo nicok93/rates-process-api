@@ -1,19 +1,8 @@
 import express from 'express';
 import { routes } from './src/routes/v1.js';
 const app = express();
+app.use(express.json())
 import { properties } from './src/environments/properties.js';
-// import shipstationSystemAPI from 'shipstation-system-api';
-import sqlSystemAPI from 'sql-system-api';
-import easypostSystemAPI from 'easypost-system-api';
-// const response = await easypostSystemAPI.addressService.retrieve();
-// response.addresses.forEach(address => {
-//     console.log(address.id);
-// });
-// console.log(await shipstationSystemAPI.servicesService.list({ uriParams: {carrierCode: "sendle"}, queryParams: { force: false } }));
-// console.log(await sqlSystemAPI.productsService.list());
-import common from './src/services/common.js';
-await common.packer();
-// console.log(JSON.stringify(await shipstationSystemAPI.ordersService.list()));
 app.get('/', (req, res) => res.send('App is working'));
 app.use('/api', routes)
 
