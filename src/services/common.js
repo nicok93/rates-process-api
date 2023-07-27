@@ -38,6 +38,10 @@ function createBin(bin) {
 function addProductsToPacker(products, packer) {
     let responseProducts = [];
     products.forEach(product => {
+        // if(foldable){
+        //     length = interiorSizes.length / 2;
+        //     height = interiorSizes.length * 2;
+        // }
         const item = new Item(product.id, product.width, product.height, product.length, product.shopify.weight);
         responseProducts.push(createItem(item));
         packer.addItem(item);
