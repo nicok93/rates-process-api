@@ -30,10 +30,14 @@ function packForAlternative(box, mapOfProducts, packages, alternative) {
     let packer = new Packer();
     const interiorSizes = box.interior;
     const bin = new Bin(box.name, interiorSizes.width, interiorSizes.height, interiorSizes.length, box.maximumWeight)
-    packer.addBin(bin);
-    addProductsToPacker(mapOfProducts.get(alternative), packer);
+    const products = mapOfProducts.get(alternative);
+    const hasBoxesOnlyProduct = products.filter(product => product.boxesOnly).length;
+    if (!hasBoxesOnlyProduct || (hasBoxesOnlyProduct > 0 && box.type == "Box")) {
+        packer.addBin(bin);
+    }
+    addProductsToPacker(products, packer);
     packer.pack();
-    processPackaging(packages, alternative, packer);
+    processPackaging(packages, alternative, box, packer);
 }
 
 function buildResultByAlternative(packages, mapOfProducts, alternative) {
@@ -42,24 +46,27 @@ function buildResultByAlternative(packages, mapOfProducts, alternative) {
     };
 }
 
-function processPackaging(packages, alternative, packer) {
+function processPackaging(packages, alternative, box, packer) {
     const boxesInMap = packages.get(alternative);
     for (const bin of packer.bins) {
         if (packer.unfitItems.length == 0) {
-            boxesInMap.push(createBin(bin))
+            boxesInMap.push(createBin(box))
         }
     }
     packages.set(alternative, boxesInMap);
 }
 
 function createBin(bin) {
-    return {
+    const interiorSizes = bin.interior
+    const response = {
         name: bin.name,
-        width: bin.width / 100000,
-        height: bin.height / 100000,
-        depth: bin.depth / 100000,
-        maxWeight: bin.maxWeight / 100000,
+        width: interiorSizes.width,
+        height: interiorSizes.height,
+        length: interiorSizes.length,
+        maxWeight: bin.maximumWeight,
+        type: bin.type
     };
+    return response;
 }
 
 function addProductsToPacker(products, packer) {
@@ -79,14 +86,21 @@ async function fetchProducts(items) {
         }
     }
     mapOfProducts.set(alternatives.REGULAR, products);
+    processFoldableProducts(products, mapOfProducts);
+    return mapOfProducts;
+}
+
+export default { pack }
+
+function processFoldableProducts(products, mapOfProducts) {
     let foldableProducts = products.filter(product => product.foldable);
     if (foldableProducts != null && foldableProducts.length > 0) {
         let notFoldableProducts = products.filter(product => !product.foldable);
         let halfWidthProducts = [];
         let halfLengthProducts = [];
         foldableProducts.forEach(product => {
-            const halfWidthProduct = transformProductByWidth(product)
-            const halfLengthProduct = transformProductByLength(product)
+            const halfWidthProduct = transformProductByWidth(product);
+            const halfLengthProduct = transformProductByLength(product);
             halfWidthProducts.push(halfWidthProduct);
             halfLengthProducts.push(halfLengthProduct);
         });
@@ -95,10 +109,7 @@ async function fetchProducts(items) {
         mapOfProducts.set(alternatives.FOLDABLE_HALF_LENGTH, halfLengthProducts);
         mapOfProducts.set(alternatives.FOLDABLE_HALF_WIDTH, halfWidthProducts);
     }
-    return mapOfProducts;
 }
-
-export default { pack }
 
 function transformProduct(product) {
     let sku = product.sku;
@@ -115,7 +126,8 @@ function transformProduct(product) {
         length: product.length,
         width: product.width,
         height: product.height,
-        foldable: product.foldable
+        foldable: product.foldable,
+        boxesOnly: product.boxesOnly
     };
 }
 
