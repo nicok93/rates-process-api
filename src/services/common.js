@@ -101,11 +101,17 @@ async function fetchProducts(items) {
 export default { pack }
 
 function transformProduct(product) {
-    console.log(product)
+    let sku = product.sku;
+    let weight = product.weight
+    if (product.shopify != undefined) {
+        const shopify = product.shopify;
+        sku = shopify.sku;
+        weight = shopify.weight;
+    }
     return {
         id: product.id,
-        sku: product.shopify.sku,
-        weight: product.shopify.weight,
+        sku: sku,
+        weight: weight,
         length: product.length,
         width: product.width,
         height: product.height,
@@ -114,16 +120,14 @@ function transformProduct(product) {
 }
 
 function transformProductByWidth(product) {
-    return {
-        length: product.length,
-        width: product.width / 2,
-        height: product.height * 2
-    };
+    product.length = product.length;
+    product.width = product.width / 2;
+    product.height = product.height * 2;
+    return transformProduct(product);
 }
 function transformProductByLength(product) {
-    return {
-        length: product.length / 2,
-        width: product.width,
-        height: product.height * 2
-    };
+    product.length = product.length / 2;
+    product.width = product.width;
+    product.height = product.height * 2;
+    return transformProduct(product);
 }
