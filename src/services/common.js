@@ -80,7 +80,7 @@ async function fetchProducts(items) {
     let products = [];
     let mapOfProducts = new Map();
     for (const item of items) {
-        const product = await sqlModule.productsService.list({ column: "shopify_sku", value: item.sku });
+        const product = await sqlModule.productsService.list({ key: "shopify_sku", value: item.sku });
         for (let i = 0; i < item.quantity; i++) {
             products.push(transformProduct(product));
         }
