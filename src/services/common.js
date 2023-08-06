@@ -2,6 +2,7 @@ import BinPacking3D from 'binpackingjs';
 const { Item, Bin, Packer } = BinPacking3D.BP3D;
 import sqlModule from 'sql-system-api';
 import alternatives from '../utils/alternatives.js';
+import ProductTransformer from './transformers/products.js';
 
 async function pack(items) {
     const boxes = await sqlModule.packagesService.list();
@@ -79,18 +80,18 @@ function addProductsToPacker(products, packer) {
 async function fetchProducts(items) {
     let products = [];
     let mapOfProducts = new Map();
+    let filters = [];
     for (const item of items) {
-        const product = await sqlModule.productsService.list({ key: "shopify_sku", value: item.sku });
         for (let i = 0; i < item.quantity; i++) {
-            products.push(transformProduct(product));
+            filters.push({ key: "shopify_sku", value: item.sku });
         }
     }
+    const dbProducts = await sqlModule.productsService.list(filters);
+    products = ProductTransformer.transformList(dbProducts);
     mapOfProducts.set(alternatives.REGULAR, products);
     processFoldableProducts(products, mapOfProducts);
     return mapOfProducts;
 }
-
-export default { pack }
 
 function processFoldableProducts(products, mapOfProducts) {
     let foldableProducts = products.filter(product => product.foldable);
@@ -99,8 +100,8 @@ function processFoldableProducts(products, mapOfProducts) {
         let halfWidthProducts = [];
         let halfLengthProducts = [];
         foldableProducts.forEach(product => {
-            const halfWidthProduct = transformProductByWidth(product);
-            const halfLengthProduct = transformProductByLength(product);
+            const halfWidthProduct = ProductTransformer.transform(product, 1, 2, 2);
+            const halfLengthProduct = ProductTransformer.transform(product, 2, 1, 2);
             halfWidthProducts.push(halfWidthProduct);
             halfLengthProducts.push(halfLengthProduct);
         });
@@ -111,35 +112,4 @@ function processFoldableProducts(products, mapOfProducts) {
     }
 }
 
-function transformProduct(product) {
-    let sku = product.sku;
-    let weight = product.weight
-    if (product.shopify != undefined) {
-        const shopify = product.shopify;
-        sku = shopify.sku;
-        weight = shopify.weight;
-    }
-    return {
-        id: product.id,
-        sku: sku,
-        weight: weight,
-        length: product.length,
-        width: product.width,
-        height: product.height,
-        foldable: product.foldable,
-        boxesOnly: product.boxesOnly
-    };
-}
-
-function transformProductByWidth(product) {
-    product.length = product.length;
-    product.width = product.width / 2;
-    product.height = product.height * 2;
-    return transformProduct(product);
-}
-function transformProductByLength(product) {
-    product.length = product.length / 2;
-    product.width = product.width;
-    product.height = product.height * 2;
-    return transformProduct(product);
-}
+export default { pack }
