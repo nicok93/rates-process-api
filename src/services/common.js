@@ -31,7 +31,7 @@ function packForAlternative(box, mapOfProducts, packages, alternative) {
     let packer = new Packer();
     const interiorSizes = box.interior;
     const bin = new Bin(box.name, interiorSizes.width, interiorSizes.height, interiorSizes.length, box.maximumWeight)
-    const products = mapOfProducts.get(alternative);
+    const products = mapOfProducts.get(alternative) ?? [];
     const hasBoxesOnlyProduct = products.filter(product => product.boxesOnly).length;
     if (!hasBoxesOnlyProduct || (hasBoxesOnlyProduct > 0 && box.type == "Box")) {
         packer.addBin(bin);
@@ -42,8 +42,13 @@ function packForAlternative(box, mapOfProducts, packages, alternative) {
 }
 
 function buildResultByAlternative(packages, mapOfProducts, alternative) {
+    const items = mapOfProducts.get(alternative) ?? [];
+    let resultPackages = packages.get(alternative);
+    if (items.length == 0) {
+        resultPackages = []
+    }
     return {
-        [alternative]: { packages: packages.get(alternative), items: mapOfProducts.get(alternative) }
+        [alternative]: { packages: resultPackages, items: items }
     };
 }
 
