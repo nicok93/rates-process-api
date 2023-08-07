@@ -12,7 +12,8 @@ function transform(product, variantLength = 1, variantWidth = 1, variantHeight =
         width: product.width / variantWidth,
         height: product.height * variantHeight,
         foldable: product.foldable,
-        boxesOnly: product.boxesOnly
+        boxesOnly: product.boxesOnly,
+        keepVertical: product.keepVertical
     };
 }
 
