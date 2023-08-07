@@ -77,7 +77,11 @@ function createBin(bin) {
 
 function addProductsToPacker(products, packer) {
     products.forEach(product => {
-        const item = new Item(product.id, product.width, product.height, product.length, product.weight);
+        let allowedRotations = [0, 1, 2, 3, 4, 5];
+        if (product.keepVertical) {
+            allowedRotations = [1,2]
+        }
+        const item = new Item(product.id, product.width, product.height, product.length, product.weight, allowedRotations);
         packer.addItem(item);
     });
 }
@@ -85,17 +89,25 @@ function addProductsToPacker(products, packer) {
 async function fetchProducts(items) {
     let products = [];
     let mapOfProducts = new Map();
-    let filters = [];
-    for (const item of items) {
-        for (let i = 0; i < item.quantity; i++) {
-            filters.push({ key: "shopify_sku", value: item.sku });
-        }
-    }
+    let filters = prepareFilters(items);
     const dbProducts = await sqlModule.productsService.list(filters);
-    products = ProductTransformer.transformList(dbProducts);
+    dbProducts.forEach(product => {
+        const quantity = items.filter(item => product.sku == item.sku)[0].quantity;
+        for (let i = 0; i < quantity; i++) {
+            products.push(ProductTransformer.transform(product));
+        }
+    })
     mapOfProducts.set(alternatives.REGULAR, products);
     processFoldableProducts(products, mapOfProducts);
     return mapOfProducts;
+}
+
+function prepareFilters(items) {
+    let filters = [];
+    for (const item of items) {
+        filters.push({ key: "shopify_sku", value: item.sku });
+    }
+    return filters;
 }
 
 function processFoldableProducts(products, mapOfProducts) {
