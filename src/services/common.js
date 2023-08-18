@@ -44,6 +44,7 @@ function packForAlternative(box, mapOfProducts, packages, alternative) {
 function buildResultByAlternative(packages, mapOfProducts, alternative) {
     const items = mapOfProducts.get(alternative) ?? [];
     let resultPackages = packages.get(alternative);
+    resultPackages = resultPackages.sort(function (box1, box2) { return box1.cubic - box2.cubic });
     if (items.length == 0) {
         resultPackages = []
     }
@@ -53,7 +54,7 @@ function buildResultByAlternative(packages, mapOfProducts, alternative) {
 }
 
 function processPackaging(packages, alternative, box, packer) {
-    const boxesInMap = packages.get(alternative);
+    let boxesInMap = packages.get(alternative);
     for (const bin of packer.bins) {
         if (packer.unfitItems.length == 0) {
             boxesInMap.push(createBin(box))
@@ -70,6 +71,7 @@ function createBin(bin) {
         height: interiorSizes.height,
         length: interiorSizes.length,
         maxWeight: bin.maximumWeight,
+        cubic: interiorSizes.width * interiorSizes.height * interiorSizes.length,
         type: bin.type
     };
     return response;
@@ -79,7 +81,7 @@ function addProductsToPacker(products, packer) {
     products.forEach(product => {
         let allowedRotations = [0, 1, 2, 3, 4, 5];
         if (product.keepVertical) {
-            allowedRotations = [1,2]
+            allowedRotations = [1, 2]
         }
         const item = new Item(product.id, product.width, product.height, product.length, product.weight, allowedRotations);
         packer.addItem(item);
