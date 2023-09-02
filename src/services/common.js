@@ -13,10 +13,12 @@ async function pack(items) {
         packForAlternative(box, mapOfProducts, packages, alternatives.FOLDABLE_HALF_LENGTH);
         packForAlternative(box, mapOfProducts, packages, alternatives.FOLDABLE_HALF_WIDTH);
     });
-    const regular = buildResultByAlternative(packages, mapOfProducts, alternatives.REGULAR);
-    const foldableByWidth = buildResultByAlternative(packages, mapOfProducts, alternatives.FOLDABLE_HALF_WIDTH);
-    const foldableByLength = buildResultByAlternative(packages, mapOfProducts, alternatives.FOLDABLE_HALF_LENGTH);
-    return Object.assign(regular, foldableByLength, foldableByWidth);
+    let fullPackages = packages.get(alternatives.REGULAR).concat(packages.get(alternatives.FOLDABLE_HALF_WIDTH)).concat(packages.get(alternatives.FOLDABLE_HALF_LENGTH));
+    fullPackages = fullPackages.sort(function (box1, box2) { return box1.cubic - box2.cubic });
+    // const regular = buildResultByAlternative(packages, mapOfProducts, alternatives.REGULAR);
+    // const foldableByWidth = buildResultByAlternative(packages, mapOfProducts, alternatives.FOLDABLE_HALF_WIDTH);
+    // const foldableByLength = buildResultByAlternative(packages, mapOfProducts, alternatives.FOLDABLE_HALF_LENGTH);
+    return { packages: fullPackages, items: mapOfProducts.get(alternatives.REGULAR) };
 }
 
 function initPackagesMap() {
@@ -57,13 +59,13 @@ function processPackaging(packages, alternative, box, packer) {
     let boxesInMap = packages.get(alternative);
     for (const bin of packer.bins) {
         if (packer.unfitItems.length == 0) {
-            boxesInMap.push(createBin(box))
+            boxesInMap.push(createBin(box, alternative))
         }
     }
     packages.set(alternative, boxesInMap);
 }
 
-function createBin(bin) {
+function createBin(bin, alternative) {
     const interiorSizes = bin.interior
     const response = {
         name: bin.name,
@@ -72,7 +74,8 @@ function createBin(bin) {
         length: interiorSizes.length,
         maxWeight: bin.maximumWeight,
         cubic: interiorSizes.width * interiorSizes.height * interiorSizes.length,
-        type: bin.type
+        type: bin.type,
+        foldingStorageForTheItems: alternative
     };
     return response;
 }
