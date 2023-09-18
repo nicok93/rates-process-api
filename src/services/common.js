@@ -15,9 +15,6 @@ async function pack(items) {
     });
     let fullPackages = packages.get(alternatives.REGULAR).concat(packages.get(alternatives.FOLDABLE_HALF_WIDTH)).concat(packages.get(alternatives.FOLDABLE_HALF_LENGTH));
     fullPackages = fullPackages.sort(function (box1, box2) { return box1.cubic - box2.cubic });
-    // const regular = buildResultByAlternative(packages, mapOfProducts, alternatives.REGULAR);
-    // const foldableByWidth = buildResultByAlternative(packages, mapOfProducts, alternatives.FOLDABLE_HALF_WIDTH);
-    // const foldableByLength = buildResultByAlternative(packages, mapOfProducts, alternatives.FOLDABLE_HALF_LENGTH);
     return { packages: fullPackages, items: mapOfProducts.get(alternatives.REGULAR) };
 }
 
@@ -96,6 +93,9 @@ async function fetchProducts(items) {
     let mapOfProducts = new Map();
     let filters = prepareFilters(items);
     const dbProducts = await sqlModule.productsService.list(filters);
+    if (dbProducts.length == 0) {
+        throw "Items not found / No items in order"
+    }
     dbProducts.forEach(product => {
         const quantity = items.filter(item => product.sku == item.sku)[0].quantity;
         for (let i = 0; i < quantity; i++) {
