@@ -56,7 +56,8 @@ function processPackaging(packages, alternative, box, packer) {
     let boxesInMap = packages.get(alternative);
     for (const bin of packer.bins) {
         if (packer.unfitItems.length == 0) {
-            boxesInMap.push(createBin(box, alternative))
+            let newBox = createBin(box, alternative);
+            boxesInMap.push(newBox);
         }
     }
     packages.set(alternative, boxesInMap);
@@ -64,13 +65,15 @@ function processPackaging(packages, alternative, box, packer) {
 
 function createBin(bin, alternative) {
     const interiorSizes = bin.interior
+    const cubic = interiorSizes.width * interiorSizes.height * interiorSizes.length;
     const response = {
+        id: bin.packageID + alternative + cubic,
         name: bin.name,
         width: interiorSizes.width,
         height: interiorSizes.height,
         length: interiorSizes.length,
         maxWeight: bin.maximumWeight,
-        cubic: interiorSizes.width * interiorSizes.height * interiorSizes.length,
+        cubic: cubic,
         type: bin.type,
         foldingStorageForTheItems: alternative
     };

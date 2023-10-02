@@ -5,7 +5,10 @@ const list = async (req, res, next) => {
     let result = { json: {} };
     try {
         const packedItems = await common.pack(body.items);
-        result = { status: 200, json: Object.assign(await rates.rate(body, packedItems, req.query), { firstAppraised: parseInt(req.query.firstAppraised), lastAppraised: parseInt(req.query.lastAppraised) }) };
+        const firstAppraised = parseInt(req.query.firstAppraised);
+        const lastAppraised = parseInt(req.query.lastAppraised);
+        const rateBoxes = rates.rate(body, packedItems, req.query);
+        result = { status: 200, json: Object.assign(await rateBoxes, { firstAppraised: firstAppraised, lastAppraised: lastAppraised }) };
     } catch (error) {
         console.log(error);
         result = { status: 500, json: { error } }

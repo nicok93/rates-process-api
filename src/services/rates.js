@@ -2,8 +2,17 @@ import easypostModule from "easypost-system-api";
 import sqlModule from 'sql-system-api';
 import addressService from './address.js';
 import shipstationModule from "shipstation-system-api";
+import snapshot from "./snapshot.js";
+const ENTITY_NAME = "ratedBoxes";
 
 async function rate(shippingDetails, packedItems, queryParams) {
+    let unratedIndex = undefined;
+    if (!queryParams.force && snapshot.pathExists(ENTITY_NAME)) {
+        unratedIndex = await rateFromSnapshot(queryParams, packedItems);
+        if (unratedIndex.length == 0) {
+            return packedItems;
+        }
+    }
     const weight = calculateTotalWeight(packedItems);
     const addressFrom = await shipstationModule.warehousesService.list({ warehouseID: shippingDetails.warehouseID });
     const addressTo = await addressService.validate(shippingDetails.shipTo);
@@ -12,9 +21,9 @@ async function rate(shippingDetails, packedItems, queryParams) {
         const requestedShippingService = shippingDetails.requestedShippingService ?? "Super Saver";
         const mapping = (await sqlModule.zoneService.listMapping(zone, requestedShippingService));
         let easypostCodes = await loadEasypostCodes(mapping);
-        const appraisedBoxes = calculateBoxesToRate(queryParams, packedItems.packages.length);
+        const appraisedBoxes = unratedIndex ?? calculateBoxesToRate(queryParams, packedItems.packages.length);
         for (const box of packedItems.packages) {
-            if (appraisedBoxes.includes(packedItems.packages.indexOf(box) + 1)) {
+            if (appraisedBoxes.includes(packedItems.packages.indexOf(box))) {
                 const shipmentParameters = createShipment(addressFrom.originAddress, addressTo, box, weight);
                 const shipment = await easypostModule.shipmentService.create(shipmentParameters);
                 shipment.rates = shipment.rates.filter(rate => easypostCodes.includes(rate.service));
@@ -22,7 +31,28 @@ async function rate(shippingDetails, packedItems, queryParams) {
             }
         };
     }
+
+    snapshot.takeSnapshot("ratedBoxes", packedItems);
     return packedItems;
+}
+
+async function rateFromSnapshot(queryParams, packedItems) {
+    let unratedIndex = [];
+    const snapshotedPackedItems = await snapshot.readFile(ENTITY_NAME);
+    const packages = snapshotedPackedItems.packages;
+    const appraisedBoxes = calculateBoxesToRate(queryParams, packages.length);
+    packages.forEach(box => {
+        if (box.rates != undefined) {
+            const index = packages.indexOf(box);
+            packedItems.packages[index].rates = box.rates;
+        }
+    });
+    appraisedBoxes.forEach(index => {
+        if (packages[index].rates == undefined) {
+            unratedIndex.push(index);
+        }
+    });
+    return unratedIndex;
 }
 
 function createShipment(addressFrom, addressTo, box, weight) {
@@ -55,7 +85,8 @@ async function loadEasypostCodes(mapping) {
 function calculateBoxesToRate(rateRange, maxPackageLength) {
     const appraisedBoxes = [];
     for (let i = rateRange.firstAppraised ?? 1; i <= (rateRange.lastAppraised ?? maxPackageLength); i++) {
-        appraisedBoxes.push(Number(i));
+        const index = Number(i) - 1;
+        appraisedBoxes.push(index);
     }
     return appraisedBoxes;
 }
