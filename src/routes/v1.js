@@ -3,6 +3,7 @@ import boxesController from '../controllers/boxes.js'
 import ordersController from '../controllers/orders.js';
 import storesController from '../controllers/stores.js';
 import warehousesController from '../controllers/warehouses.js';
+import productsController from '../controllers/products.js';
 
 const routes = express.Router();
 
@@ -15,5 +16,7 @@ routes.get('/v1/orders/:id', ordersController.getOrder);
 routes.get('/v1/stores/:id', storesController.getStore);
 
 routes.get('/v1/warehouses/:id', warehousesController.getWarehouse);
+
+routes.get('/v1/products', productsController.getProducts);
 
 export { routes }

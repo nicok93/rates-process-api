@@ -6,7 +6,10 @@ import ProductTransformer from './transformers/products.js';
 
 async function pack(items) {
     const boxes = await sqlModule.packagesService.list();
-    let mapOfProducts = await fetchProducts(items);
+    const products = await fetchProducts(items);
+    let mapOfProducts = new Map();
+    mapOfProducts.set(alternatives.REGULAR, products);
+    processFoldableProducts(products, mapOfProducts);
     let packages = initPackagesMap();
     boxes.forEach(box => {
         packForAlternative(box, mapOfProducts, packages, alternatives.REGULAR);
@@ -93,21 +96,18 @@ function addProductsToPacker(products, packer) {
 
 async function fetchProducts(items) {
     let products = [];
-    let mapOfProducts = new Map();
     let filters = prepareFilters(items);
     const dbProducts = await sqlModule.productsService.list(filters);
     if (dbProducts.length == 0) {
         throw "Items not found / No items in order"
     }
     dbProducts.forEach(product => {
-        const quantity = items.filter(item => product.sku == item.sku)[0].quantity;
+        const quantity = items.filter(item => product.sku == item.sku)[0].quantity ?? 1;
         for (let i = 0; i < quantity; i++) {
             products.push(ProductTransformer.transform(product));
         }
     })
-    mapOfProducts.set(alternatives.REGULAR, products);
-    processFoldableProducts(products, mapOfProducts);
-    return mapOfProducts;
+    return products;
 }
 
 function prepareFilters(items) {
@@ -137,4 +137,4 @@ function processFoldableProducts(products, mapOfProducts) {
     }
 }
 
-export default { pack }
+export default { pack, fetchProducts }
