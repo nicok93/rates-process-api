@@ -43,18 +43,6 @@ function packForAlternative(box, mapOfProducts, packages, alternative) {
     processPackaging(packages, alternative, box, packer);
 }
 
-function buildResultByAlternative(packages, mapOfProducts, alternative) {
-    const items = mapOfProducts.get(alternative) ?? [];
-    let resultPackages = packages.get(alternative);
-    resultPackages = resultPackages.sort(function (box1, box2) { return box1.cubic - box2.cubic });
-    if (items.length == 0) {
-        resultPackages = []
-    }
-    return {
-        [alternative]: { packages: resultPackages, items: items }
-    };
-}
-
 function processPackaging(packages, alternative, box, packer) {
     let boxesInMap = packages.get(alternative);
     for (const bin of packer.bins) {
@@ -66,18 +54,18 @@ function processPackaging(packages, alternative, box, packer) {
     packages.set(alternative, boxesInMap);
 }
 
-function createBin(bin, alternative) {
-    const interiorSizes = bin.interior
+function createBin(box, alternative) {
+    const interiorSizes = box.interior;
     const cubic = interiorSizes.width * interiorSizes.height * interiorSizes.length;
     const response = {
-        id: bin.packageID + alternative + cubic,
-        name: bin.name,
+        id: box.packageID + alternative + cubic,
+        name: box.name,
         width: interiorSizes.width,
         height: interiorSizes.height,
         length: interiorSizes.length,
-        maxWeight: bin.maximumWeight,
+        maxWeight: box.maximumWeight,
         cubic: cubic,
-        type: bin.type,
+        type: box.type,
         foldingStorageForTheItems: alternative
     };
     return response;
