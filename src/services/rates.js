@@ -26,7 +26,6 @@ async function rate(shippingDetails, packedItems, queryParams) {
         for (const box of packedItems.packages) {
             if (appraisedBoxes.includes(packedItems.packages.indexOf(box))) {
                 const shipmentParameters = createShipment(addressFrom.originAddress, addressTo, box, weight, easypostAccountCodes);
-                console.log(shipmentParameters)
                 const shipment = await easypostModule.shipmentService.create(shipmentParameters);
                 shipment.rates = shipment.rates.filter(rate => easypostCodes.includes(rate.service));
                 box.rates = shipment.rates;
