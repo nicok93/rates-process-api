@@ -16,6 +16,7 @@ async function rate(shippingDetails, packedItems, queryParams) {
     const weight = calculateTotalWeight(packedItems);
     const addressFrom = await shipstationModule.warehousesService.list({ warehouseID: shippingDetails.warehouseID });
     const addressTo = await addressService.validate(shippingDetails.shipTo);
+    const easypostAccountCodes = (await sqlModule.easypostAccountCodesService.list()).map(element => element.carrierAccountID);
     if (addressTo.isValid) {
         const zone = addressTo.result.state;
         const requestedShippingService = shippingDetails.requestedShippingService ?? "Super Saver";
@@ -24,8 +25,8 @@ async function rate(shippingDetails, packedItems, queryParams) {
         const appraisedBoxes = unratedIndex ?? calculateBoxesToRate(queryParams, packedItems.packages.length);
         for (const box of packedItems.packages) {
             if (appraisedBoxes.includes(packedItems.packages.indexOf(box))) {
-                // need to be filled in with carrier account codes
-                const shipmentParameters = createShipment(addressFrom.originAddress, addressTo, box, weight);
+                const shipmentParameters = createShipment(addressFrom.originAddress, addressTo, box, weight, easypostAccountCodes);
+                console.log(shipmentParameters)
                 const shipment = await easypostModule.shipmentService.create(shipmentParameters);
                 shipment.rates = shipment.rates.filter(rate => easypostCodes.includes(rate.service));
                 box.rates = shipment.rates;
@@ -56,11 +57,12 @@ async function rateFromSnapshot(queryParams, packedItems) {
     return unratedIndex;
 }
 
-function createShipment(addressFrom, addressTo, box, weight) {
+function createShipment(addressFrom, addressTo, box, weight, carrierAccounts) {
     return {
         fromAddress: addressFrom,
         toAddress: { id: addressTo.id },
-        parcel: createParcel(box, weight)
+        parcel: createParcel(box, weight),
+        carrierAccounts: carrierAccounts
     };
 }
 
