@@ -9,5 +9,5 @@ app.use(cors())
 app.use(express.json())
 app.get('/', (req, res) => res.send('App is working'));
 app.use('/api', routes)
-// shipstation.schedulers.start();
+shipstation.schedulers.start();
 app.listen(process.env.PORT, () => console.log('Rates process API listening on port ' + properties.PORT + '!'))
