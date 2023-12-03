@@ -14,7 +14,6 @@ const label = async (req, res, next) => {
             billToParty: billingType
         }
         body = Object.assign(body, { advancedOptions: advancedOptions });
-        console.log(body);
         result = { status: 200, json: {} };
     } catch (error) {
         console.log(error);

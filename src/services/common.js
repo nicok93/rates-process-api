@@ -32,6 +32,7 @@ function initPackagesMap() {
 function packForAlternative(box, mapOfProducts, packages, alternative) {
     let packer = new Packer();
     const interiorSizes = box.interior;
+    // console.log(box);
     const bin = new Bin(box.name, interiorSizes.width, interiorSizes.height, interiorSizes.length, box.maximumWeight)
     const products = mapOfProducts.get(alternative) ?? [];
     const hasBoxesOnlyProduct = products.filter(product => product.boxesOnly).length;
@@ -57,6 +58,10 @@ function processPackaging(packages, alternative, box, packer) {
 function createBin(box, alternative) {
     const interiorSizes = box.interior;
     const cubic = interiorSizes.width * interiorSizes.height * interiorSizes.length;
+    let price = 0;
+    if (box.suppliers.length > 0) {
+        price = box.suppliers[0].price
+    }
     const response = {
         id: box.packageID + alternative + cubic,
         name: box.name,
@@ -66,6 +71,8 @@ function createBin(box, alternative) {
         maxWeight: box.maximumWeight,
         cubic: cubic,
         type: box.type,
+        boxPrice: price,
+        tapeCost: box.tapeCost ?? 0,
         foldingStorageForTheItems: alternative
     };
     return response;

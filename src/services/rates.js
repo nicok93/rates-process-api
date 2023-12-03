@@ -3,6 +3,7 @@ import sqlModule from 'sql-system-api';
 import addressService from './address.js';
 import shipstationModule from "shipstation-system-api";
 import snapshot from "./snapshot.js";
+import { parse } from "dotenv";
 const ENTITY_NAME = "ratedBoxes";
 
 async function rate(shippingDetails, packedItems, queryParams) {
@@ -29,6 +30,11 @@ async function rate(shippingDetails, packedItems, queryParams) {
                 const shipment = await easypostModule.shipmentService.create(shipmentParameters);
                 shipment.rates = shipment.rates.filter(rate => easypostCodes.includes(rate.service));
                 box.rates = shipment.rates;
+                box.rates.forEach(rate => {
+                    rate.rate = parseFloat(rate.rate) + parseFloat(box.boxPrice) + parseFloat(box.tapeCost),
+                    rate.boxPrice = parseFloat(box.boxPrice),
+                    rate.tapeCost = parseFloat(box.tapeCost)
+                });
             }
         };
     }
